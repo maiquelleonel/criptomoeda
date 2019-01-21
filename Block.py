@@ -16,6 +16,8 @@ class Blockchain:
     def __init__(self, genisisBlock):
         self.__chain = []
         self.__chain.append(genesisBlock)
+        self.DIFFICULTY_AJUSTMENT = 10
+        self.BLOCK_INTERVAL = 120
 
     def getLatestBlock(self):
         return self.__chain[len(self.__chain) - 1]
@@ -52,6 +54,25 @@ class Blockchain:
                 block = Block(index, previousHash, timestamp, data, difficulty, nonce)
                 return Block
             nonce = nonce + 1
+
+    def getDiffculty(self):
+        latestBlock = self.getLatestBlock()
+        if latestBlock.index % self.DIFFICULTY_AJUSTMENT == 0 and latestBlock.index > 0:
+            return self.getAjustedDifficulty()
+        else:
+            return latestBlock.difficulty
+
+    def getAjustedDifficulty(self):
+        latestBlock = self.getLatestBlock()
+        prevAjustmentBlock = self.__chain[len(self.__chain - self.DIFFICULTY_AJUSTMENT)]
+        timeExpected = self.BLOCK_INTERVAL * self.DIFFICULTY_AJUSTMENT
+        timeTaken = latestBlock.timestamp - prevAjustmentBlock.timestamp
+        if timeTaken < timeExpected * 2:
+            return prevAjustmentBlock.difficulty + 1
+        elif timeTaken > timeExpected * 2:
+            return prevAjustmentBlock.difficulty - 1
+        else:
+            return prevAjustmentBlock.difficulty
 
 
 def calculateHash(index, previousHash, timestamp, data, difficulty, nonce):
