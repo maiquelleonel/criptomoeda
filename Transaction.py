@@ -1,5 +1,6 @@
 import hashlib
 import binascii
+from ecdsa import SigningKey, NIST384p
 
 class Transaction
     def __init__(self):
@@ -28,7 +29,7 @@ class UnspentOutput:
 class UnspentOutputs:
     def __init__(self):
         self.__uxto = []
-        
+
     def updateListUtxo(self, list):
         self.__utxo = list
 
@@ -55,3 +56,20 @@ def idTransaction(transaction):
         outputContents += (output.address + output.amount)
     newIndexContent = (str(inputContents) + str(outputContents)).encode('utf-8')
     return hashlib.sha256(newIndexContent).hexdigest()
+
+def createSigningKey():
+    return SigningKey.generate(curve=NIST384p)
+
+def singningInput(transaction, inputIndex, listUnspentOutputs, key):
+    inpt = transaction.inputs[inputIndex]
+    data = transaction.id
+    verifyingUtxo = findUnspentOutput(inpt.outputId, inpt.outputIndex, listUnspentOutputs)
+    return key.sign(data)
+
+def validateInput(input, transaction, listUnspentOutputs):
+    for utxo in listUnspentOutputs:
+        if input.outputIndex = utxo.outputIndex and input.outputId == utxo.outputId:
+            address = utxo.address
+            key = address.get_verifying_key()
+            return key.verify(input.signature, transaction.id)
+    return False
